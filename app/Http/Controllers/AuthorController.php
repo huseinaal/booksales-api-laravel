@@ -125,10 +125,7 @@ class AuthorController extends Controller
             ], 404);
         }
 
-        if ($author->cover_photo) {
-            Storage::disk('public')->delete('books/' . $author->cove_photo);
-        }
-
+        
         $author->delete();
 
         return response()->json([

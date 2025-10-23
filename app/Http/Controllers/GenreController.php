@@ -127,10 +127,7 @@ class GenreController extends Controller
                 'message' => 'Resource not found'
             ], 404);
         }
-
-        if ($genre->cover_photo) {
-            Storage::disk('public')->delete('books/' . $genre->cove_photo);
-        }
+        
 
         $genre->delete();
 
