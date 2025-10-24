@@ -92,9 +92,9 @@ class TransactionController extends Controller
 
     public function show(string $id)
     {
-        $transaction = Transaction::find($id);
+        $transactions = Transaction::find($id);
 
-        if (!$transaction) {
+        if (!$transactions) {
             return response()->json([
                 'success' => false,
                 'message' => 'Resource not found'
@@ -104,26 +104,28 @@ class TransactionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Get detail resource',
-            'data' => $transaction
+            'data' => $transactions
         ], 200);
     }
 
     public function update(string $id, Request $request)
     {
         //1. Mencari data
-        $transaction = Transaction::find($id);
+        $transactions = Transaction::find($id);
 
-        if (!$transaction) {
+        if (!$transactions) {
             return response()->json([
                 'success' => false,
                 'message' => 'Resource not found'
             ], 404);
         }
 
+        $book = Book::find($request->book_id);
+
         //2. Validator
         $validator = Validator::make($request->all(), [
-            'customer_id' => 'required|exists:users,id',
             'book_id' => 'required|exists:books,id',
+            'quantity' => 'required|integer|min:1'
         ]);
 
         if ($validator->fails()) {
@@ -133,34 +135,39 @@ class TransactionController extends Controller
             ], 422);
         }
 
+        $totalAmount = $book->price * $request->quantity;
+
         //3. Data yang diupdate
         $data = [
-            'customer_id' => $request->customer_id,
             'book_id' => $request->book_id,
+            'quantity' => $totalAmount
         ];
 
+        $book->stock -= $request->quantity;
+        $book->save();
+
         //5. Update data baru kedalam database
-        $transaction->update($data);
+        $transactions->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Resource updated successfully',
-            'data' => $transaction
+            'data' => $transactions
         ], 200);
     }
 
     public function destroy(string $id)
     {
-        $transaction = Transaction::find($id);
+        $transactions = Transaction::find($id);
 
-        if (!$transaction) {
+        if (!$transactions) {
             return response()->json([
                 'success' => false,
                 'message' => 'Resource not found'
             ], 404);
         }
 
-        $transaction->delete();
+        $transactions->delete();
 
         return response()->json([
             'success' => true,
